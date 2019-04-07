@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30501.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoCompleteTextBox", "AutoCompleteTextBox\AutoCompleteTextBox.csproj", "{F5743D53-CFC7-4DFC-A787-228DF82211F5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoCompleteTextBoxUIApplication", "AutoCompleteTextBoxUIApplication\AutoCompleteTextBoxUIApplication.csproj", "{C022BDB3-160E-4601-B674-198E853CBE81}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoCompleteTextBox.Test", "AutoCompleteTextBox.Test\AutoCompleteTextBox.Test.csproj", "{8C1F2CB7-77D7-4375-9A85-4610D23350E8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F5743D53-CFC7-4DFC-A787-228DF82211F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5743D53-CFC7-4DFC-A787-228DF82211F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5743D53-CFC7-4DFC-A787-228DF82211F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5743D53-CFC7-4DFC-A787-228DF82211F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C022BDB3-160E-4601-B674-198E853CBE81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C022BDB3-160E-4601-B674-198E853CBE81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C022BDB3-160E-4601-B674-198E853CBE81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C022BDB3-160E-4601-B674-198E853CBE81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C1F2CB7-77D7-4375-9A85-4610D23350E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C1F2CB7-77D7-4375-9A85-4610D23350E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C1F2CB7-77D7-4375-9A85-4610D23350E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C1F2CB7-77D7-4375-9A85-4610D23350E8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

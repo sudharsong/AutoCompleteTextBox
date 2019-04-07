@@ -1,0 +1,11 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:MyCustomControls="clr-namespace:MyCustomControls;assembly=AutoCompleteTextBox" x:Class="AutoCompleteTextBoxUIApplication.MainWindow"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid>
+
+        <MyCustomControls:AutoCompleteTextBox Width="200" Height="20" ItemSource="{Binding}" TargetMember="Name"/>
+
+    </Grid>
+</Window>
