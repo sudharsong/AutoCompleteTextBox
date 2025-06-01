@@ -5,6 +5,19 @@ using System.Net.Sockets;
 Console.WriteLine("Logs from your program will appear here!");
 
 // Uncomment this block to pass the first stage
-// TcpListener server = new TcpListener(IPAddress.Any, 9092);
-// server.Start();
-// server.AcceptSocket(); // wait for client
+CancellationTokenSource tokenSource = new CancellationTokenSource();
+TcpListener server = new TcpListener(IPAddress.Any, 9092);
+server.Start();
+while (true)
+{
+    var socket = await  server.AcceptSocketAsync(tokenSource.Token); // wait for client
+    HandleRequestAync(socket);
+}
+
+void HandleRequestAync(Socket socket)
+{
+    while(!tokenSource.IsCancellationRequested)
+    {
+
+    }
+}
