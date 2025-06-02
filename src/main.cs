@@ -20,11 +20,21 @@ async Task HandleRequestAync(Socket socket)
 {
     while(!tokenSource.IsCancellationRequested)
     {
-        var requestBuffer = new byte[200];
-        var request = await socket.ReceiveAsync(requestBuffer);
+        var requestBuffer = new byte[13];
+        var readBytes = await socket.ReceiveAsync(requestBuffer);
+        if(readBytes == 0)
+        {
+            Console.WriteLine("Peer Closed");
+            throw new InvalidOperationException("Peer Closed");
+        }
+
+        var requesLength = BinaryPrimitives.ReadInt32BigEndian(requestBuffer.AsSpan(0, 4));
+        var apiKey = BinaryPrimitives.ReadInt16BigEndian(requestBuffer.AsSpan(4, 2));
+        var apiVersion = BinaryPrimitives.ReadInt16BigEndian(requestBuffer.AsSpan(6, 2));
+        var correlationId = BinaryPrimitives.ReadInt32BigEndian(requestBuffer.AsSpan(8, 4));
         byte[] buffer = new byte[8];
         BinaryPrimitives.WriteInt32BigEndian(buffer.AsSpan(0, 4), 0);
-        BinaryPrimitives.WriteInt32BigEndian(buffer.AsSpan(4, 4), 7);
+        BinaryPrimitives.WriteInt32BigEndian(buffer.AsSpan(4, 4), correlationId);
         await socket.SendAsync(buffer);
     }
 }
