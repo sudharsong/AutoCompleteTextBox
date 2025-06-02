@@ -32,9 +32,10 @@ async Task HandleRequestAync(Socket socket)
         var apiKey = BinaryPrimitives.ReadInt16BigEndian(requestBuffer.AsSpan(4, 2));
         var apiVersion = BinaryPrimitives.ReadInt16BigEndian(requestBuffer.AsSpan(6, 2));
         var correlationId = BinaryPrimitives.ReadInt32BigEndian(requestBuffer.AsSpan(8, 4));
-        byte[] buffer = new byte[8];
+        byte[] buffer = new byte[10];
         BinaryPrimitives.WriteInt32BigEndian(buffer.AsSpan(0, 4), 0);
         BinaryPrimitives.WriteInt32BigEndian(buffer.AsSpan(4, 4), correlationId);
+        BinaryPrimitives.WriteInt16BigEndian(buffer.AsSpan(8, 2), 35);
         await socket.SendAsync(buffer);
     }
 }
