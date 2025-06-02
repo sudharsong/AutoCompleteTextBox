@@ -12,14 +12,16 @@ server.Start();
 while (true)
 {
     var socket = await server.AcceptSocketAsync(tokenSource.Token); // wait for client
-   //socket.Listen();
-    await HandleRequestAync(socket);
+                                                                    //socket.Listen();
+    Task.Run(() =>  HandleRequestAync(socket, tokenSource.Token));
 }
 
-async Task HandleRequestAync(Socket socket)
+
+static async Task HandleRequestAync(Socket socket, CancellationToken token)
 {
-    while (!tokenSource.IsCancellationRequested)
-    {
+   // while (!token.IsCancellationRequested)
+    //{
+        Console.WriteLine("Parsing the request");
         var requestBuffer = new byte[1024];
         var readBytes = await socket.ReceiveAsync(requestBuffer);
         if (readBytes == 0)
@@ -57,5 +59,10 @@ async Task HandleRequestAync(Socket socket)
         }
      
         await socket.SendAsync(buffer);
+
+    if(socket.Connected && !token.IsCancellationRequested)
+    {
+        Task.Run(() => HandleRequestAync(socket, token));
     }
+   // }
 }
