@@ -1,0 +1,86 @@
+﻿using System;
+using System.Buffers.Binary;
+using System.Buffers;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Net.Sockets;
+
+namespace codecrafterskafka.src
+{
+    public static class Utilities
+    {
+        public static async Task<byte[]> ReadExactlyAsync(this Socket socket,
+                                                         int count,
+                                                         CancellationToken token)
+        {
+            var buffer = new byte[count];
+            int offset = 0;
+
+            while (offset < count)
+            {
+                // ← use the Memory<byte> overload, which takes a CancellationToken
+                int n = await socket.ReceiveAsync(
+                    buffer.AsMemory(offset, count - offset),
+                    SocketFlags.None,
+                    token);
+
+                if (n == 0)
+                {
+                    // peer closed before we got 'count' bytes
+                    return Array.Empty<byte>();
+                }
+
+                offset += n;
+            }
+
+            return buffer;
+        }
+
+        public static async Task SendAllAsync(this Socket socket,
+                                      ReadOnlyMemory<byte> buffer,
+                                      CancellationToken token)
+        {
+            int sent = 0;
+            while (sent < buffer.Length)
+            {
+                //int n = s.Send(buffer.ToArray()[sent..]);
+                int n = await socket.SendAsync(buffer[sent..], SocketFlags.None, token);
+                if (n == 0) throw new IOException("Peer closed while sending");
+                sent += n;
+            }
+        }
+
+        public static void WriteInt16ToBuffer(this ArrayBufferWriter<byte> writer, short value)
+        {
+            Span<byte> span = writer.GetSpan(2);
+            BinaryPrimitives.WriteInt16BigEndian(span, value);
+            writer.Advance(2);
+        }
+
+        public static void WriteInt32ToBuffer(this ArrayBufferWriter<byte> writer, int value)
+        {
+            Span<byte> span = writer.GetSpan(4);
+            BinaryPrimitives.WriteInt32BigEndian(span, value);
+            writer.Advance(4);
+        }
+
+        public static void WriteByteToBuffer(this ArrayBufferWriter<byte> writer, byte value)
+        {
+            Span<byte> span = writer.GetSpan(1);
+            span[0] = value;
+            writer.Advance(1);
+        }
+
+        public static int ReadInt32FromBuffer(this Span<byte> span)
+        {
+            return BinaryPrimitives.ReadInt32BigEndian(span);
+        }
+
+        public static short ReadInt16FromBuffer(this Span<byte> span)
+        {
+            return BinaryPrimitives.ReadInt16BigEndian(span);
+        }
+    }
+}
