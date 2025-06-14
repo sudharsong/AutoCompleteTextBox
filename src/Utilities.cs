@@ -73,14 +73,61 @@ namespace codecrafterskafka.src
             writer.Advance(1);
         }
 
-        public static int ReadInt32FromBuffer(this Span<byte> span)
+        public static void WriteBytesToBuffer(this ArrayBufferWriter<byte> writer, byte[] value)
         {
-            return BinaryPrimitives.ReadInt32BigEndian(span);
+            Span<byte> span = writer.GetSpan(value.Length);
+            value.CopyTo(span);
+            writer.Advance(value.Length);
         }
 
-        public static short ReadInt16FromBuffer(this Span<byte> span)
-        {
-            return BinaryPrimitives.ReadInt16BigEndian(span);
+        public static int ReadInt32FromBuffer(this byte[] buffer, ref int offset)
+        {            
+            var result = BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan(offset, 4));
+            offset += 4;
+            return result;
         }
+
+        public static short ReadInt16FromBuffer(this byte[] buffer, ref int offset)
+        {
+            var result = BinaryPrimitives.ReadInt16BigEndian(buffer.AsSpan(offset, 2));
+            offset += 2;
+            return result;
+        }
+
+        public static string ReadStringFromBuffer(this byte[] buffer, ref int offset, int length)
+        {
+            var result = Encoding.UTF8.GetString(buffer.AsSpan(offset, length).ToArray()).TrimEnd('\0');
+            offset += length;
+            return result;
+        }
+
+        public static byte ReadByteFromBuffer(this byte[] buffer, ref int offset)
+        {
+            var result = buffer[offset];
+            offset += 1;
+            return result;
+        }
+
+        //public static byte[] GetBytes(this int num)
+        //{
+        //    var result = BitConverter.GetBytes(num);
+        //    if(BitConverter.IsLittleEndian)
+        //    {
+        //        Array.Reverse(result);
+        //    }
+
+        //    return result;
+        //}
+
+        //public static byte[] GetBytes(this short num)
+        //{
+        //    var result = BitConverter.GetBytes(num);
+        //    if (BitConverter.IsLittleEndian)
+        //    {
+        //        Array.Reverse(result);
+        //    }
+
+        //    return result;
+        //}
     }
 }
