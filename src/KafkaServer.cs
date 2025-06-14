@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -40,24 +41,59 @@ namespace codecrafterskafka.src
 
         private async Task HandleRequestAync(Socket socket, CancellationToken token)
         {
-            var lenthBuffer = await socket.ReadExactlyAsync(4, token);    
-            var requesLength = BinaryPrimitives.ReadInt32BigEndian(lenthBuffer);
-            if(requesLength == 0)
+            try
             {
-                throw new InvalidOperationException("Invalid Messge Length");
+
+                var lenthBuffer = await socket.ReadExactlyAsync(4, token);
+                var requesLength = BinaryPrimitives.ReadInt32BigEndian(lenthBuffer);
+                if (requesLength == 0)
+                {
+                    throw new InvalidOperationException("Invalid Messge Length");
+                }
+
+
+                byte[] inputBuffer = await socket.ReadExactlyAsync(requesLength, token);
+
+                Request request = new Request(inputBuffer);
+
+                ArrayBufferWriter<byte> writer = new ArrayBufferWriter<byte>();
+
+                if (request.Head.ApiKey == 18 && request.Head.ApiVersion >= 0 && request.Head.ApiVersion <= 4)
+                {
+                    PrepareValidApiKeyResponse(writer, request.Head.CorrelationId);
+                }
+                else if (request.Head.ApiKey == 75 && request.Head.ApiVersion >= 0)
+                {
+                    var topicName = ((TopicPartitionRequestBodyV0)request.Body).Topics.FirstOrDefault()?.Name ?? string.Empty;
+                    PrepareDescribeTopicPartitionsResponse(writer,
+                        request.Head.CorrelationId,
+                        topicName);
+                }
+                else
+                {
+                    PrepareInValidApiKeyResponse(writer, request.Head.CorrelationId);
+                }
+
+                Console.WriteLine(writer.WrittenMemory);
+                await socket.SendAllAsync(writer.WrittenMemory, token);
+
+                if (socket.Connected && !token.IsCancellationRequested)
+                {
+                    Task.Run(() => HandleRequestAync(socket, token));
+                }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
 
-            
-            byte[] inputBuffer = await socket.ReadExactlyAsync(requesLength, token);   
-            
-            TopicParititionRequest request = new TopicParititionRequest(inputBuffer);
-
-            ArrayBufferWriter<byte> writer = new ArrayBufferWriter<byte>(); 
-            TopicParitionResponseHeader header = new TopicParitionResponseHeader(request.Head.CorrelationId);
-
+        private void PrepareDescribeTopicPartitionsResponse(ArrayBufferWriter<byte> writer, int correlationId, string topicName)
+        {
+            TopicParitionResponseHeader header = new TopicParitionResponseHeader(correlationId);
             TopicParitionResponseBody body = new TopicParitionResponseBody();
             ResponseTopic topic = new ResponseTopic();
-            topic.Content = request.Body.Topics.FirstOrDefault()?.Name ?? string.Empty;
+            topic.Content = topicName;
             topic.ErrorCode = 3;
             topic.UUID = new Guid("00000000-0000-0000-0000-000000000000");
             topic.PartitionsCount = 1;
@@ -65,50 +101,33 @@ namespace codecrafterskafka.src
 
             TopicPartitionResponse partitionResponse = new TopicPartitionResponse(header, body);
             partitionResponse.GetResponse(writer);
-
-            //if (request.Head.ApiKey == 18 && request.Head.ApiVersion >= 0 && request.Head.ApiVersion <= 4)
-            //{
-            //    PrepareValidApiKeyResponse(writer, request.Head.CorrelationId);  
-            //}
-            //else
-            //{
-            //    PrepareInValidApiKeyResponse(writer, request.Head.CorrelationId);
-            //}
-
-            Console.WriteLine(writer.WrittenMemory);
-            await socket.SendAllAsync(writer.WrittenMemory, token);
-
-            if (socket.Connected && !token.IsCancellationRequested)
-            {
-                Task.Run(() => HandleRequestAync(socket, token));
-            }
         }
 
         private void PrepareValidApiKeyResponse(ArrayBufferWriter<byte> writer, int correlationId)
         {
-            //var lengthSpan = writer.GetSpan(4);
-            //writer.Advance(4); // reserve space for length  
+            var lengthSpan = writer.GetSpan(4);
+            writer.Advance(4); // reserve space for length  
 
 
-            //writer.WriteInt32ToBuffer(correlationId); //correlationId            
-            //writer.WriteInt16ToBuffer(0); //ErrorCode
-            //writer.WriteByteToBuffer(3); //Api key version array length
+            writer.WriteInt32ToBuffer(correlationId); //correlationId            
+            writer.WriteInt16ToBuffer(0); //ErrorCode
+            writer.WriteByteToBuffer(3); //Api key version array length
 
-            //writer.WriteInt16ToBuffer(18); //Api key
-            //writer.WriteInt16ToBuffer(0); //Api key min version 
-            //writer.WriteInt16ToBuffer(4); //Api key max version
-            //writer.WriteByteToBuffer(0); //Tag field 
+            writer.WriteInt16ToBuffer(18); //Api key
+            writer.WriteInt16ToBuffer(0); //Api key min version 
+            writer.WriteInt16ToBuffer(4); //Api key max version
+            writer.WriteByteToBuffer(0); //Tag field 
 
-            //writer.WriteInt16ToBuffer(75); //api valid key
-            //writer.WriteInt16ToBuffer(0); //Api key min version
-            //writer.WriteInt16ToBuffer(0); //Api key max version
-            //writer.WriteByteToBuffer(0); //Tag field
+            writer.WriteInt16ToBuffer(75); //api valid key
+            writer.WriteInt16ToBuffer(0); //Api key min version
+            writer.WriteInt16ToBuffer(0); //Api key max version
+            writer.WriteByteToBuffer(0); //Tag field
 
-            //writer.WriteInt32ToBuffer(120); //Throttle time
-            //writer.WriteByteToBuffer(0); //Tag field
+            writer.WriteInt32ToBuffer(120); //Throttle time
+            writer.WriteByteToBuffer(0); //Tag field
 
-            //var length = writer.WrittenCount - 4; // calculate the length of the response   
-            //BinaryPrimitives.WriteInt32BigEndian(lengthSpan, length); // write the length to the reserved space 
+            var length = writer.WrittenCount - 4; // calculate the length of the response   
+            BinaryPrimitives.WriteInt32BigEndian(lengthSpan, length); // write the length to the reserved space 
         }
 
         private void PrepareInValidApiKeyResponse(ArrayBufferWriter<byte> writer, int correlationId)

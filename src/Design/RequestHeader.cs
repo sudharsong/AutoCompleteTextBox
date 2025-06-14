@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace codecrafterskafka.src.Design
 {
-    internal class TopicPartiotionRequestHeader
+    internal class RequestHeader
     {
         private int messageHeaderLength;
 
@@ -23,7 +23,7 @@ namespace codecrafterskafka.src.Design
 
         
 
-        public TopicPartiotionRequestHeader(byte[] buffer)
+        public RequestHeader(byte[] buffer)
         {
             this.buffer = buffer;
             this.ApiKey = this.buffer.ReadInt16FromBuffer(ref messageHeaderLength); // Read the API key (2 bytes) 
