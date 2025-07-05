@@ -21,11 +21,11 @@ namespace codecrafterskafka.src.Design
             get; set;
         }
 
-        public int TopicsLength
+        public byte TopicsLength
         {
             get
             {
-                return this.Topics.Length;
+                return (byte)(this.Topics.Length + 1);
             }
         }
 
@@ -53,7 +53,7 @@ namespace codecrafterskafka.src.Design
             this.Cursor = 0xff;
             writer.WriteToBuffer(this.ThrottleTime);
             Console.WriteLine($"Topic Length : {this.TopicsLength}");
-            writer.WriteVarIntToBuffer(this.TopicsLength); // Write the length of the topics array (1 byte)
+            writer.WriteToBuffer(this.TopicsLength); // Write the length of the topics array (1 byte)
             if (this.Topics != null)
             {
                 foreach (var topic in this.Topics)

@@ -102,26 +102,11 @@ namespace codecrafterskafka.src
                 }
                 else if (request.Head.ApiKey == 75 && request.Head.ApiVersion >= 0)
                 {
-                    var topicName = ((TopicPartitionRequestBodyV0)request.Body).Topics.FirstOrDefault()?.Name ?? string.Empty;
-                    Console.WriteLine($"Topic Name {topicName}");
-                    var topicPartions = this.metaData.GetTopicPartitions(topicName);
-                    //Console.WriteLine($"Topic Partitions Count {topicPartions?.PartitionCount ?? 0}");
+                    var topics = ((TopicPartitionRequestBodyV0)request.Body).Topics;
+                    var topicPartions = this.metaData.GetTopicPartitions(topics);
                     PrepareDescribeTopicPartitionsResponse(writer,
                                                                request.Head.CorrelationId,
                                                                topicPartions);
-
-                    //if (topicPartions != null)
-                    //{
-                    //    PrepareDescribeTopicPartitionsResponse(writer,
-                    //                                           request.Head.CorrelationId,
-                    //                                           topicPartions);
-                    //}
-                    //else
-                    //{
-                    //    PrepareDescribeUnKownTopicPartitionsResponse(writer,
-                    //    request.Head.CorrelationId,
-                    //    topicName);
-                    //}
                 }
                 else
                 {
@@ -143,16 +128,21 @@ namespace codecrafterskafka.src
         }
 
         private void PrepareDescribeTopicPartitionsResponse(ArrayBufferWriter<byte> writer, 
-            int correlationId, TopicPartitions topicPartitions)
+            int correlationId, List<TopicPartitions> topicPartitions)
         {
             TopicParitionResponseHeaderV0 header = new TopicParitionResponseHeaderV0(correlationId);
             TopicParitionResponseBodyV0 body = new TopicParitionResponseBodyV0();
-            ResponseTopic topic = new ResponseTopic();
-            topic.Content = topicPartitions.TopicName;
-            topic.ErrorCode = (short)(topicPartitions.TopicID.Equals(Guid.Empty) ? 3: 0);
-            topic.UUID = topicPartitions.TopicID;
-            topic.PartitionsCount = (byte)topicPartitions.PartitionCount;
-            topic.Partitions = topicPartitions.Partitions;
+            ResponseTopic[] topics = new ResponseTopic[topicPartitions.Count];
+            for (int i = 0; i < topicPartitions.Count; i++)
+            {
+                ResponseTopic topic = new ResponseTopic();
+                topic.Content = topicPartitions[i].TopicName;
+                topic.ErrorCode = (short)(topicPartitions[i].TopicID.Equals(Guid.Empty) ? 3 : 0);
+                topic.UUID = topicPartitions[i].TopicID;
+                topic.PartitionsCount = (byte)topicPartitions[i].PartitionCount;
+                topic.Partitions = topicPartitions[i].Partitions;
+                topics[i] = topic;
+            }
 
             //topic.Partitions = new Partition[]
             //{
@@ -163,7 +153,7 @@ namespace codecrafterskafka.src
             //    }
             //};
 
-            body.Topics = new ResponseTopic[] { topic };
+            body.Topics = topics;
 
             TopicPartitionResponse partitionResponse = new TopicPartitionResponse(header, body);
             partitionResponse.GetResponse(writer);

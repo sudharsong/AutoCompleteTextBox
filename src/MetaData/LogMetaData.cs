@@ -159,44 +159,37 @@ namespace src.MetaDatakafka.src
             return record;
         }
 
-        public TopicPartitions GetTopicPartitions(string topicName)
+        public List<TopicPartitions> GetTopicPartitions(RequestTopic[]? topics)
         {
-            if(string.IsNullOrWhiteSpace(topicName))
+            List<TopicPartitions> topicPartitions = new List<TopicPartitions>();
+            foreach (var topic in topics)
             {
-                throw new ArgumentNullException("Topic Null Exception");
+
+                TopicPartitions partitions = new TopicPartitions();
+                partitions.TopicName = topic.Name;
+                partitions.TopicID = this.topicRecords.FirstOrDefault(t => t.Name == topic.Name)?.TopicUUID ?? Guid.Empty;
+                var partitionRecords = this.partitionRecords.Where(p => p.TopicUUID == partitions.TopicID).ToList();
+                partitions.PartitionCount = partitionRecords.Count;
+                partitions.PartitionIndexes = partitionRecords.Select(p => p.ParititionId).ToArray();
+                partitions.Partitions = partitionRecords.Select(a => new Partition
+                {
+                    PartitionIndex = a.ParititionId,
+                    ErrorCode = 0, // Assuming no error for simplicity
+                    LeaderID = a.Leader,
+                    LeaderEpoch = a.LeaderEpoch,
+                    ReplicaNodes = a.ReplicaArray ?? Array.Empty<int>(),
+                    ReplicaNodesLength = (byte)(a.ReplicaArray?.Length + 1 ?? 0),
+                    ISRNodes = a.SyncReplicaArray ?? Array.Empty<int>(),
+                    ISRNodesLength = (byte)(a.SyncReplicaArray?.Length + 1 ?? 0),
+                    OfflineReplicaNodesLength = Convert.ToInt32(a.RemovingReplicaArrayLength),
+                    EligibleLeaderReplicaNodesLength = Convert.ToInt32(a.AddingReplicaArrayLength),
+                    LastKnownELRLength = 0, // Assuming no last known eligible leader replica nodes for simplicity
+                    TagBuffer = 0
+                }).ToArray();
+                topicPartitions.Add(partitions);
             }
 
-
-
-            TopicPartitions partitions = new TopicPartitions();
-            partitions.TopicName = topicName;
-            partitions.TopicID = this.topicRecords.FirstOrDefault(t => t.Name == topicName)?.TopicUUID ?? Guid.Empty;
-           // Console.WriteLine($"Topic UUID: {partitions.TopicID}");
-            var partitionRecords = this.partitionRecords.Where(p => p.TopicUUID == partitions.TopicID).ToList();
-            partitions.PartitionCount = partitionRecords.Count;
-            partitions.PartitionIndexes = partitionRecords.Select(p => p.ParititionId).ToArray();
-            //foreach (var partition in this.partitionRecords)
-            //{
-            //   Console.WriteLine($"Partition ID: {partition.ParititionId}, Topic UUID: {partition.TopicUUID}, Leader: {partition.Leader}, " +
-            //       $"Leader Epoch: {partition.LeaderEpoch}, Replica Count: {partition.ReplicaArrayLength}, Sync Replica Count: {partition.SyncReplicaArrayLength}");
-            //}
-
-            partitions.Partitions = partitionRecords.Select(a => new Partition
-            {
-                PartitionIndex = a.ParititionId,
-                ErrorCode = 0, // Assuming no error for simplicity
-                LeaderID = a.Leader,
-                LeaderEpoch = a.LeaderEpoch,
-                ReplicaNodes = a.ReplicaArray ?? Array.Empty<int>(),
-                ReplicaNodesLength = (byte) (a.ReplicaArray?.Length + 1?? 0),
-                ISRNodes = a.SyncReplicaArray ?? Array.Empty<int>(),
-                ISRNodesLength = (byte)(a.SyncReplicaArray?.Length + 1 ?? 0),
-                OfflineReplicaNodesLength = Convert.ToInt32(a.RemovingReplicaArrayLength),
-                EligibleLeaderReplicaNodesLength = Convert.ToInt32(a.AddingReplicaArrayLength),
-                LastKnownELRLength = 0, // Assuming no last known eligible leader replica nodes for simplicity
-                TagBuffer = 0
-            }).ToArray();
-            return partitions;
+            return topicPartitions;
         }
 
     }
