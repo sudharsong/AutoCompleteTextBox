@@ -164,7 +164,6 @@ namespace src.MetaDatakafka.src
             List<TopicPartitions> topicPartitions = new List<TopicPartitions>();
             foreach (var topic in topics)
             {
-
                 TopicPartitions partitions = new TopicPartitions();
                 partitions.TopicName = topic.Name;
                 partitions.TopicID = this.topicRecords.FirstOrDefault(t => t.Name == topic.Name)?.TopicUUID ?? Guid.Empty;

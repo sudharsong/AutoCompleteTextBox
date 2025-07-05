@@ -29,19 +29,6 @@ namespace codecrafterskafka.src.Design
             }
         }
 
-        //public Partition[] Partitions
-        //{
-        //    get; set;
-        //}
-
-        //public byte PartitionsLength
-        //{
-        //    get
-        //    {
-        //        return (byte)((this.Partitions?.Length ?? 0) + 1);
-        //    }
-        //}
-
 
         public byte TagBuffer
         {
@@ -52,7 +39,6 @@ namespace codecrafterskafka.src.Design
         {
             this.Cursor = 0xff;
             writer.WriteToBuffer(this.ThrottleTime);
-            Console.WriteLine($"Topic Length : {this.TopicsLength}");
             writer.WriteToBuffer(this.TopicsLength); // Write the length of the topics array (1 byte)
             if (this.Topics != null)
             {
@@ -61,15 +47,6 @@ namespace codecrafterskafka.src.Design
                     topic.WriteResponse(writer); // Write each topic's response
                 }
             }
-
-            //writer.WriteToBuffer(this.PartitionsLength); // Write the length of the topics array (1 byte)
-            //if (this.Partitions != null)
-            //{
-            //    foreach (var partition in this.Partitions)
-            //    {
-            //        partition.WriteResponse(writer); // Write each topic's response
-            //    }
-            //}
 
             writer.WriteToBuffer(this.Cursor); // Write the cursor (1 byte, nullable)
             writer.WriteToBuffer(this.TagBuffer);
