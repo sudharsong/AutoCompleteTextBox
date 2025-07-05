@@ -7,7 +7,7 @@ namespace codecrafterskafka.src.Design
         private int numberOfTopics;
         //private byte[] buffer;
 
-        public RequestTopic[] Topics
+        public RequestTopic[]? Topics
         {
             get; private set;
         }

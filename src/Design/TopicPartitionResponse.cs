@@ -10,11 +10,11 @@ namespace codecrafterskafka.src.Design
 {
     internal class TopicPartitionResponse : Response
     {
-        private TopicParitionResponseHeader header;
-        private TopicParitionResponseBody body;
+        private TopicParitionResponseHeaderV0 header;
+        private TopicParitionResponseBodyV0 body;
 
 
-        public TopicPartitionResponse(TopicParitionResponseHeader header, TopicParitionResponseBody body)
+        public TopicPartitionResponse(TopicParitionResponseHeaderV0 header, TopicParitionResponseBodyV0 body)
         {
             this.header = header;
             this.body = body;

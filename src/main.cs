@@ -10,6 +10,7 @@ Console.WriteLine("Logs from your program will appear here!");
 CancellationTokenSource tokenSource = new CancellationTokenSource();
 
 KafkaServer server = new KafkaServer(9092, tokenSource.Token);
+await server.LoadLog();
 await server.Start();
 //TcpListener server = new TcpListener(IPAddress.Any, 9092);
 //server.Start();

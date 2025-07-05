@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace codecrafterskafka.src.Design
 {
-    internal class TopicParitionResponseHeader : Header
+    internal class TopicParitionResponseHeaderV0 : Header
     {
-        public TopicParitionResponseHeader(int correlationId) : base(correlationId)
+        public TopicParitionResponseHeaderV0(int correlationId) : base(correlationId)
         {
             this.TagBuffer   = 0;
         }
@@ -17,8 +17,8 @@ namespace codecrafterskafka.src.Design
 
         public void WriteResponse(ArrayBufferWriter<byte> writer)
         {
-            writer.WriteInt32ToBuffer(this.CorrelationId);
-            writer.WriteByteToBuffer(this.TagBuffer);
+            writer.WriteToBuffer(this.CorrelationId);
+            writer.WriteToBuffer(this.TagBuffer);
         }
     }
 }
