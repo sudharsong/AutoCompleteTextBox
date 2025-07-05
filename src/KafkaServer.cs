@@ -182,7 +182,7 @@ namespace codecrafterskafka.src
 
             writer.WriteToBuffer(correlationId); //correlationId            
             writer.WriteToBuffer((short)0); //ErrorCode
-            writer.WriteToBuffer((byte)3); //Api key version array length
+            writer.WriteToBuffer((byte)4); //Api key version array length
 
             writer.WriteToBuffer((short)18); //Api key
             writer.WriteToBuffer((short)0); //Api key min version 
@@ -193,6 +193,11 @@ namespace codecrafterskafka.src
             writer.WriteToBuffer((short)0); //Api key min version
             writer.WriteToBuffer((short)0); //Api key max version
             writer.WriteToBuffer((byte)0); //Tag field
+
+            writer.WriteToBuffer((short)1); //Api key
+            writer.WriteToBuffer((short)0); //Api key min version 
+            writer.WriteToBuffer((short)16); //Api key max version
+            writer.WriteToBuffer((byte)0); //Tag field 
 
             writer.WriteToBuffer((int)120); //Throttle time
             writer.WriteToBuffer((byte)0); //Tag field

@@ -25,8 +25,7 @@ namespace src.MetaDatakafka.src
             var fileBuffer = await File.ReadAllBytesAsync(logMetadataFilePath, token);
             ReadRecordBatches(fileBuffer, 0);
         }
-
-        //private void ReadRecordBatches(FileStream sourceStream, int startLength)
+        
         private void ReadRecordBatches(byte[] buffer, int startLength)
         {
             if (startLength >= buffer.Length)
@@ -80,14 +79,10 @@ namespace src.MetaDatakafka.src
                 record.Value = recordValue;
                 record.HeaderArrayCount = buffer.ReadUVarInt(ref currentLength);
                 batch.Records.Add(record);
-                //Console.WriteLine($"Record Type: {recordValue.Type}, Version: {recordValue.Version}," +
-                //    $" FrameVersion: {recordValue.FrameVersion}, Length: {record.Length}, KeyLength: {record.KeyLength}," +
-                //    $" ValueLength: {record.ValueLength}");
             }
 
             this.recordBatches.Add(batch);
             ReadRecordBatches(buffer, currentLength);
-            //Console.WriteLine("Record Batches Loaded");
         }
 
         private MetaDataRecord ReadTopicRecord(byte[] buffer, ref int currentOffset)
