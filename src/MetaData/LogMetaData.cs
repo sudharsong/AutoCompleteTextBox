@@ -1,6 +1,6 @@
 ﻿using codecrafterskafka.src;
-using codecrafterskafka.src.Design;
 using codecrafterskafka.src.MetaData;
+using src.Design.TopicPartition;
 using System;
 using System.Collections.Generic;
 using System.Linq;

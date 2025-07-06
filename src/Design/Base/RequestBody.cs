@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace codecrafterskafka.src.Design
+namespace src.Design.Base
 {
     internal abstract class RequestBody
     {

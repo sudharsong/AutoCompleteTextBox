@@ -1,13 +1,15 @@
-﻿using System;
+﻿using codecrafterskafka.src;
+using src.Design.Base;
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace codecrafterskafka.src.Design
+namespace src.Design.TopicPartition
 {
-    internal class TopicParitionResponseBodyV0
+    internal class TopicParitionResponseBodyV0 : ResponseBody
     {
         public int ThrottleTime { get; }
 
@@ -25,7 +27,7 @@ namespace codecrafterskafka.src.Design
         {
             get
             {
-                return (byte)(this.Topics.Length + 1);
+                return (byte)(Topics.Length + 1);
             }
         }
 
@@ -35,21 +37,21 @@ namespace codecrafterskafka.src.Design
             get; set;
         }
 
-        public void WriteResponse(ArrayBufferWriter<byte> writer)
+        public override void WriteResponse(ArrayBufferWriter<byte> writer)
         {
-            this.Cursor = 0xff;
-            writer.WriteToBuffer(this.ThrottleTime);
-            writer.WriteToBuffer(this.TopicsLength); // Write the length of the topics array (1 byte)
-            if (this.Topics != null)
+            Cursor = 0xff;
+            writer.WriteToBuffer(ThrottleTime);
+            writer.WriteToBuffer(TopicsLength); // Write the length of the topics array (1 byte)
+            if (Topics != null)
             {
-                foreach (var topic in this.Topics)
+                foreach (var topic in Topics)
                 {
                     topic.WriteResponse(writer); // Write each topic's response
                 }
             }
 
-            writer.WriteToBuffer(this.Cursor); // Write the cursor (1 byte, nullable)
-            writer.WriteToBuffer(this.TagBuffer);
+            writer.WriteToBuffer(Cursor); // Write the cursor (1 byte, nullable)
+            writer.WriteToBuffer(TagBuffer);
         }
     }
 }

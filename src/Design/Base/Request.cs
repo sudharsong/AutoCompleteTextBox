@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using src.Design.ApiVersion;
+using src.Design.Fetch;
+using src.Design.TopicPartition;
 
-namespace codecrafterskafka.src.Design
+namespace src.Design.Base
 {
     internal class Request
     {
@@ -16,27 +14,27 @@ namespace codecrafterskafka.src.Design
 
         public Request(byte[] buffer) {
             this.buffer = buffer;
-            this.header = new RequestHeader(this.buffer);
-            this.offset = this.header.MessageHeaderLength;
+            header = new RequestHeader(this.buffer);
+            offset = header.MessageHeaderLength;
             if(header.ApiKey == 18 && header.ApiVersion >= 0 && header.ApiVersion <= 4)
             {
-                this.body = new ApiVersionRequestBodyV4();
+                body = new ApiVersionRequestBodyV4();
             }
             else if (header.ApiKey == 75 && header.ApiVersion >= 0 && header.ApiVersion <= 0)
             {
-                this.body = new TopicPartitionRequestBodyV0();
+                body = new TopicPartitionRequestBodyV0();
             }
             else if (header.ApiKey == 1 && header.ApiVersion >= 0 && header.ApiVersion <= 16)
             {
-                this.body = new FetchRequestBodyV16();
+                body = new FetchRequestBodyV16();
             }
 
-            this.body?.PopulateBody(this.buffer, this.offset);
+            body?.PopulateBody(this.buffer, offset);
         }
 
         public RequestHeader Head { get
             {
-                return this.header;
+                return header;
             }
         }
 
@@ -44,7 +42,7 @@ namespace codecrafterskafka.src.Design
         {
             get
             {
-                return this.body;
+                return body;
             }
         }
     }

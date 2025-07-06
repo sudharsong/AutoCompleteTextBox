@@ -1,11 +1,12 @@
-﻿using System;
+﻿using codecrafterskafka.src;
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace codecrafterskafka.src.Design
+namespace src.Design.TopicPartition
 {
     internal class Partition
     {
@@ -41,30 +42,30 @@ namespace codecrafterskafka.src.Design
 
         public void WriteResponse(ArrayBufferWriter<byte> writer)
         {
-            writer.WriteToBuffer(this.ErrorCode);
-            writer.WriteToBuffer(this.PartitionIndex);
-            writer.WriteToBuffer(this.LeaderID);
-            writer.WriteToBuffer(this.LeaderEpoch);
+            writer.WriteToBuffer(ErrorCode);
+            writer.WriteToBuffer(PartitionIndex);
+            writer.WriteToBuffer(LeaderID);
+            writer.WriteToBuffer(LeaderEpoch);
             // Write Replica Nodes
-            writer.WriteToBuffer(this.ReplicaNodesLength);
-            if (this.ReplicaNodes != null)
+            writer.WriteToBuffer(ReplicaNodesLength);
+            if (ReplicaNodes != null)
             {
-                foreach (var node in this.ReplicaNodes)
+                foreach (var node in ReplicaNodes)
                 {
                     writer.WriteToBuffer(node);
                 }
             }
             // Write ISR Nodes
-            writer.WriteToBuffer(this.ISRNodesLength);
-            if (this.ISRNodes != null)
+            writer.WriteToBuffer(ISRNodesLength);
+            if (ISRNodes != null)
             {
-                foreach (var node in this.ISRNodes)
+                foreach (var node in ISRNodes)
                 {
                     writer.WriteToBuffer(node);
                 }
             }
             // Write Eligible Leader Replica Nodes
-            writer.WriteVarIntToBuffer(this.EligibleLeaderReplicaNodesLength);
+            writer.WriteVarIntToBuffer(EligibleLeaderReplicaNodesLength);
             //if (this.EligibleLeaderReplicaNodes != null)
             //{
             //    foreach (var node in this.EligibleLeaderReplicaNodes)
@@ -74,7 +75,7 @@ namespace codecrafterskafka.src.Design
             //}
 
             // Write Last Known ELR
-            writer.WriteVarIntToBuffer(this.LastKnownELRLength);
+            writer.WriteVarIntToBuffer(LastKnownELRLength);
             //if (this.LastKnownELR != null)
             //{
             //    foreach (var node in this.LastKnownELR)
@@ -84,7 +85,7 @@ namespace codecrafterskafka.src.Design
             //}
 
             // Write Offline Replica Nodes
-            writer.WriteVarIntToBuffer(this.OfflineReplicaNodesLength);
+            writer.WriteVarIntToBuffer(OfflineReplicaNodesLength);
             //if (this.OfflineReplicaNodes != null)
             //{
             //    foreach (var node in this.OfflineReplicaNodes)
@@ -94,7 +95,7 @@ namespace codecrafterskafka.src.Design
             //}
 
             // Write Tag Buffer
-            writer.WriteToBuffer(this.TagBuffer);
+            writer.WriteToBuffer(TagBuffer);
         }
     }
 }

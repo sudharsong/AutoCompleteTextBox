@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace codecrafterskafka.src.Design
+namespace src.Design.TopicPartition
 {
     internal class RequestTopic
     {

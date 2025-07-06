@@ -1,6 +1,8 @@
-﻿using System;
+﻿using codecrafterskafka.src;
+using src.Design.Base;
+using System;
 
-namespace codecrafterskafka.src.Design
+namespace src.Design.TopicPartition
 {
     internal class TopicPartitionRequestBodyV0 : RequestBody
     {
@@ -30,19 +32,19 @@ namespace codecrafterskafka.src.Design
 
         public override void PopulateBody(byte[] buffer, int offset)
         {      
-            this.numberOfTopics = buffer.ReadByteFromBuffer(ref offset) - 1;            
-            this.Topics = new RequestTopic[numberOfTopics];
+            numberOfTopics = buffer.ReadByteFromBuffer(ref offset) - 1;            
+            Topics = new RequestTopic[numberOfTopics];
             for (int i = 0; i < numberOfTopics; i++)
             {
                 var topicNameLength = buffer.ReadByteFromBuffer(ref offset);
                 var topicName = buffer.ReadStringFromBuffer(ref offset, topicNameLength - 1);
                 var tagBuffer = buffer.ReadByteFromBuffer(ref offset);
-                this.Topics[i] = new RequestTopic(topicNameLength, topicName, tagBuffer);
+                Topics[i] = new RequestTopic(topicNameLength, topicName, tagBuffer);
             }
 
-            this.PartitionLimit = buffer.ReadInt32FromBuffer(ref offset); // Read the Partition Limit (4 bytes)
-            this.Cursor = buffer.ReadByteFromBuffer(ref offset); // Read the Cursor (1 byte)
-            this.TagBuffer = buffer.ReadByteFromBuffer(ref offset); // Read the Tag Buffer (1 byte)    
+            PartitionLimit = buffer.ReadInt32FromBuffer(ref offset); // Read the Partition Limit (4 bytes)
+            Cursor = buffer.ReadByteFromBuffer(ref offset); // Read the Cursor (1 byte)
+            TagBuffer = buffer.ReadByteFromBuffer(ref offset); // Read the Tag Buffer (1 byte)    
         }
     }
 }

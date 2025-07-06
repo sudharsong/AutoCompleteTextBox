@@ -1,11 +1,12 @@
-﻿using System;
+﻿using codecrafterskafka.src;
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace codecrafterskafka.src.Design
+namespace src.Design.TopicPartition
 {
     internal class ResponseTopic
     {
@@ -75,13 +76,13 @@ namespace codecrafterskafka.src.Design
 
         public void WriteResponse(ArrayBufferWriter<byte> writer)
         {
-            writer.WriteToBuffer(this.ErrorCode);
-            writer.WriteToBuffer(this.ContentLength); // Write the length of the content (1 byte)
+            writer.WriteToBuffer(ErrorCode);
+            writer.WriteToBuffer(ContentLength); // Write the length of the content (1 byte)
             writer.WriteToBuffer(UTF8Content); // Write the UTF8 content
             writer.WriteToBuffer(UUID.ToByteArray(true)); // Write the UUID as bytes
-            writer.WriteToBuffer(this.IsInternal ? (byte)1 : (byte)0); // Write the internal flag (1 byte)
-            writer.WriteToBuffer((byte)(this.PartitionsCount+1)); // Write the partitions count (1 byte)
-            if(this.PartitionsCount > 0)
+            writer.WriteToBuffer(IsInternal ? (byte)1 : (byte)0); // Write the internal flag (1 byte)
+            writer.WriteToBuffer((byte)(PartitionsCount+1)); // Write the partitions count (1 byte)
+            if(PartitionsCount > 0)
             {
                 
                 for (int i = 0; i < Partitions.Length; i++)
@@ -91,8 +92,8 @@ namespace codecrafterskafka.src.Design
                 }
             }
 
-            writer.WriteToBuffer(this.Operations); // Write the operations (4 bytes)
-            writer.WriteToBuffer(this.TagBuffer); // Write the tag buffer (1 byte)}
+            writer.WriteToBuffer(Operations); // Write the operations (4 bytes)
+            writer.WriteToBuffer(TagBuffer); // Write the tag buffer (1 byte)}
         }
     }
 }

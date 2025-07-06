@@ -1,5 +1,7 @@
-﻿using codecrafterskafka.src.Design;
-using codecrafterskafka.src.MetaData;
+﻿using codecrafterskafka.src.MetaData;
+using src.Design.Base;
+using src.Design.Fetch;
+using src.Design.TopicPartition;
 using src.MetaDatakafka.src;
 using System;
 using System.Buffers;
@@ -105,6 +107,10 @@ namespace codecrafterskafka.src
                                                                request.Head.CorrelationId,
                                                                topicPartions);
                 }
+                else if (request.Head.ApiKey == 1 && request.Head.ApiVersion <=16)
+                {
+                    PrepareFetchResponse(writer, request.Head.CorrelationId);
+                }
                 else
                 {
                     PrepareInValidApiKeyResponse(writer, request.Head.CorrelationId);
@@ -122,6 +128,20 @@ namespace codecrafterskafka.src
             {
                 Console.WriteLine(ex.ToString());
             }
+        }
+
+        private void PrepareFetchResponse(ArrayBufferWriter<byte> writer, int correlationId)
+        {
+            FetchResponseHeaderV16 headerV16 = new FetchResponseHeaderV16(correlationId);
+            FetchResponseBodyV16 bodyV16 = new FetchResponseBodyV16()
+            {
+                ThrottleTime = 0,
+                ErrorCode = 0,
+                SessionId = 255
+            };
+
+            FetchResponseV16 fetchResponse = new FetchResponseV16(headerV16, bodyV16);
+            fetchResponse.GetResponse(writer);
         }
 
         private void PrepareDescribeTopicPartitionsResponse(ArrayBufferWriter<byte> writer, 

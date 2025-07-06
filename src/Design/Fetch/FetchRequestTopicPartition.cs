@@ -1,10 +1,11 @@
-﻿using System;
+﻿using codecrafterskafka.src;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace codecrafterskafka.src.Design
+namespace src.Design.Fetch
 {
     internal class FetchRequestTopicPartition
     {
@@ -19,15 +20,15 @@ namespace codecrafterskafka.src.Design
 
         public void PopulateBody(byte[] buffer, int offset)
         {
-            this.TopicID = buffer.ReadGuidFromBuffer(ref offset);
+            TopicID = buffer.ReadGuidFromBuffer(ref offset);
             uint numberOfPartitions = buffer.ReadUVarInt(ref offset);
             for (int i = 0; i < numberOfPartitions - 1; i++)
             {
                 var partition = new FetchRequestPartition();
                 partition.PopulateBody(buffer, offset);
-                this.Partitions.Add(partition);
+                Partitions.Add(partition);
             }
-            this.TagBuffer = buffer.ReadByteFromBuffer(ref offset); // Read the Tag Buffer (1 byte)
+            TagBuffer = buffer.ReadByteFromBuffer(ref offset); // Read the Tag Buffer (1 byte)
         }
     }
 }

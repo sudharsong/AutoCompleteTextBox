@@ -1,10 +1,11 @@
-﻿using System;
+﻿using codecrafterskafka.src;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace codecrafterskafka.src.Design
+namespace src.Design.Fetch
 {
     internal class FetchRequestPartition
     {
@@ -24,13 +25,13 @@ namespace codecrafterskafka.src.Design
 
         public void PopulateBody(byte[] buffer, int offset)
         {
-            this.PartitionIndex = buffer.ReadInt32FromBuffer(ref offset);
-            this.CurrentLeaderEpoch = buffer.ReadInt32FromBuffer(ref offset);
-            this.FetchOffset = buffer.ReadInt64FromBuffer(ref offset);
-            this.LastFetchedEpoch = buffer.ReadInt32FromBuffer(ref offset);
-            this.LogStartOffset = buffer.ReadInt64FromBuffer(ref offset);
-            this.MaxBytes = buffer.ReadInt32FromBuffer(ref offset);
-            this.TagBuffer = buffer.ReadByteFromBuffer(ref offset);
+            PartitionIndex = buffer.ReadInt32FromBuffer(ref offset);
+            CurrentLeaderEpoch = buffer.ReadInt32FromBuffer(ref offset);
+            FetchOffset = buffer.ReadInt64FromBuffer(ref offset);
+            LastFetchedEpoch = buffer.ReadInt32FromBuffer(ref offset);
+            LogStartOffset = buffer.ReadInt64FromBuffer(ref offset);
+            MaxBytes = buffer.ReadInt32FromBuffer(ref offset);
+            TagBuffer = buffer.ReadByteFromBuffer(ref offset);
         }
     }
 
@@ -41,14 +42,14 @@ namespace codecrafterskafka.src.Design
         public byte TagBuffer { get; set; }
         public void PopulateBody(byte[] buffer, int offset)
         {
-            this.TopicID = buffer.ReadGuidFromBuffer(ref offset);
+            TopicID = buffer.ReadGuidFromBuffer(ref offset);
             uint numberOfPartitions = buffer.ReadUVarInt(ref offset);
             for (int i = 0; i < numberOfPartitions - 1; i++)
             {
                 var partitionIndex = buffer.ReadInt32FromBuffer(ref offset);
-                this.Partitions.Add(partitionIndex);
+                Partitions.Add(partitionIndex);
             }
-            this.TagBuffer = buffer.ReadByteFromBuffer(ref offset); // Read the Tag Buffer (1 byte)
+            TagBuffer = buffer.ReadByteFromBuffer(ref offset); // Read the Tag Buffer (1 byte)
         }
     }
 }

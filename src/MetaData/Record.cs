@@ -1,11 +1,4 @@
-﻿using codecrafterskafka.src.Design;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace codecrafterskafka.src.MetaData
+﻿namespace codecrafterskafka.src.MetaData
 {
     internal class Record
     {
