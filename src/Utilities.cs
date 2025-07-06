@@ -66,6 +66,13 @@ namespace codecrafterskafka.src
             writer.Advance(4);
         }
 
+        public static void WriteToBuffer(this ArrayBufferWriter<byte> writer, long value)
+        {
+            Span<byte> span = writer.GetSpan(4);
+            BinaryPrimitives.WriteInt64BigEndian(span, value);
+            writer.Advance(8);
+        }
+
         public static void WriteToBuffer(this ArrayBufferWriter<byte> writer, byte value)
         {
             Span<byte> span = writer.GetSpan(1);

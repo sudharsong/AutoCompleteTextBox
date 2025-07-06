@@ -19,12 +19,24 @@ namespace src.Design.Fetch
 
         public byte TagBuffer { get; set; }
 
+        public byte PartitionsCount
+        {
+            get; set;
+        }
+
+        public List<FetchResponseTopic> Responses { get; set; }
+
         public override void WriteResponse(ArrayBufferWriter<byte> writer)
         {
             writer.WriteToBuffer(ThrottleTime);
             writer.WriteToBuffer(ErrorCode);
             writer.WriteToBuffer(SessionId);
-            writer.WriteToBuffer((byte)0);
+            writer.WriteVarIntToBuffer(Responses.Count);//need to comment
+            foreach (var response in Responses)
+            {
+                response.WriteResponse(writer);
+            }
+
             writer.WriteToBuffer(TagBuffer);
         }
     }

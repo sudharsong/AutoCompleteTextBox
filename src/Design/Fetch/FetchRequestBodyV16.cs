@@ -26,6 +26,8 @@ namespace src.Design.Fetch
 
         public List<ForgottenTopicPartitions> ForgottenTopics { get; private set; } = new List<ForgottenTopicPartitions>();
 
+        public string? RackID { get; private set; }
+
         public override void PopulateBody(byte[] buffer, int offset)
         {
             MaxWaitTime = buffer.ReadInt32FromBuffer(ref offset);
@@ -34,21 +36,23 @@ namespace src.Design.Fetch
             IsolationLevel = buffer.ReadByteFromBuffer(ref offset);
             SessionID = buffer.ReadInt32FromBuffer(ref offset);
             SessionEpoch = buffer.ReadInt32FromBuffer(ref offset);
-            //uint numberOfTopics = buffer.ReadUVarInt(ref offset);
-            //for (int i = 0; i < numberOfTopics; i++)
-            //{
-            //    var topicPartition = new FetchRequestTopicPartition();
-            //    topicPartition.PopulateBody(buffer, offset);
-            //    this.Topics.Add(topicPartition);
-            //}
+            byte numberOfTopics = buffer.Length - offset < 16 ? (byte)0 : buffer.ReadByteFromBuffer(ref offset);
+            for (int i = 0; i < numberOfTopics-1 ; i++)
+            {
+                var topicPartition = new FetchRequestTopicPartition();
+                topicPartition.PopulateBody(buffer, offset);
+                this.Topics.Add(topicPartition);
+            }
 
-            //uint numberOfForgottenTopics = buffer.ReadUVarInt(ref offset);
-            //for (int i = 0; i < numberOfForgottenTopics; i++)
-            //{
-            //    var forgottenTopic = new ForgottenTopicPartitions();
-            //    forgottenTopic.PopulateBody(buffer, offset);
-            //    this.ForgottenTopics.Add(forgottenTopic);
-            //}
+            byte numberOfForgottenTopics = buffer.Length - offset < 16 ? (byte)0 :  buffer.ReadByteFromBuffer(ref offset);
+            for (int i = 0; i < numberOfForgottenTopics-1; i++)
+            {
+                var forgottenTopic = new ForgottenTopicPartitions();
+                forgottenTopic.PopulateBody(buffer, offset);
+                this.ForgottenTopics.Add(forgottenTopic);
+            }
+
+            RackID = buffer.ReadStringFromBuffer(ref offset, buffer.Length - offset);
         }
     }
 }

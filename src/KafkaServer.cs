@@ -3,17 +3,12 @@ using src.Design.Base;
 using src.Design.Fetch;
 using src.Design.TopicPartition;
 using src.MetaDatakafka.src;
-using System;
 using System.Buffers;
 using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
-using System.Reflection.PortableExecutable;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace codecrafterskafka.src
 {
@@ -108,8 +103,10 @@ namespace codecrafterskafka.src
                                                                topicPartions);
                 }
                 else if (request.Head.ApiKey == 1 && request.Head.ApiVersion <=16)
-                {
-                    PrepareFetchResponse(writer, request.Head.CorrelationId);
+                {                    
+                    Guid topicId = (request.Body as FetchRequestBodyV16).Topics != null && (request.Body as FetchRequestBodyV16).Topics.Count > 0 ?
+                        (request.Body as FetchRequestBodyV16).Topics.FirstOrDefault().TopicID : Guid.Empty;
+                    PrepareFetchResponse(writer, request.Head.CorrelationId, topicId);
                 }
                 else
                 {
@@ -130,14 +127,34 @@ namespace codecrafterskafka.src
             }
         }
 
-        private void PrepareFetchResponse(ArrayBufferWriter<byte> writer, int correlationId)
+        private void PrepareFetchResponse(ArrayBufferWriter<byte> writer, int correlationId, Guid topicID)
         {
+            Console.WriteLine($"Preparing fetch response for topic id {topicID}");  
             FetchResponseHeaderV16 headerV16 = new FetchResponseHeaderV16(correlationId);
+            var partitions = new List<FetchResponseTopicPartition> {
+                            new FetchResponseTopicPartition
+                            {
+                                PartitionIndex = 0,
+                                ErrorCode = 100
+                                //HighWatermark = 1,
+                                //LastStableOffset = 1,
+                                //LogStartOffset = 0,
+                                //AbortedTransactions = Array.Empty<AbortedTransaction>(),
+                                //Records = new byte[1]
+                            } };
+            var responses = new List<FetchResponseTopic> {
+                    new FetchResponseTopic {
+                        TopicID = topicID,
+                        Partitions = partitions
+                    } };
+            Console.WriteLine($"Number of responses {responses.Count} with {partitions.Count} partitions");
+          
             FetchResponseBodyV16 bodyV16 = new FetchResponseBodyV16()
             {
                 ThrottleTime = 0,
                 ErrorCode = 0,
-                SessionId = 255
+                SessionId = 255,
+                Responses = topicID != Guid.Empty ?  responses : new List<FetchResponseTopic>()
             };
 
             FetchResponseV16 fetchResponse = new FetchResponseV16(headerV16, bodyV16);
