@@ -45,8 +45,7 @@ namespace codecrafterskafka.src
                 Console.WriteLine($"Directory not exists {logDirectory}.");
                 return;
             }
-
-            Console.WriteLine($"Found log directory {logDirectory}.");
+            
             var logFile = Path.Combine(logDirectory, "00000000000000000000.log");
             Console.WriteLine($"Found log file {logFile}.");
             if (File.Exists(logFile))
@@ -94,8 +93,6 @@ namespace codecrafterskafka.src
                 Request request = new Request(inputBuffer);
 
                 ArrayBufferWriter<byte> writer = new ArrayBufferWriter<byte>();
-
-                Console.WriteLine($"Api Key {request.Head.ApiKey} , Api version {request.Head.ApiVersion}");
                 if (request.Head.ApiKey == 18 && request.Head.ApiVersion >= 0 && request.Head.ApiVersion <= 4)
                 {
                     PrepareValidApiKeyResponse(writer, request.Head.CorrelationId);
@@ -144,32 +141,7 @@ namespace codecrafterskafka.src
                 topics[i] = topic;
             }
 
-            //topic.Partitions = new Partition[]
-            //{
-            //    new Partition
-            //    {
-            //        PartitionIndex = 124,
-            //        ErrorCode = 0
-            //    }
-            //};
-
             body.Topics = topics;
-
-            TopicPartitionResponse partitionResponse = new TopicPartitionResponse(header, body);
-            partitionResponse.GetResponse(writer);
-        }
-
-        private void PrepareDescribeUnKownTopicPartitionsResponse(ArrayBufferWriter<byte> writer, int correlationId, string topicName)
-        {
-            TopicParitionResponseHeaderV0 header = new TopicParitionResponseHeaderV0(correlationId);
-            TopicParitionResponseBodyV0 body = new TopicParitionResponseBodyV0();
-            ResponseTopic topic = new ResponseTopic();
-            topic.Content = topicName;
-            topic.ErrorCode = 0;
-            topic.UUID = new Guid("00000000-0000-0000-0000-000000000000");
-            topic.PartitionsCount = 1;
-            body.Topics = new ResponseTopic[] { topic };
-
             TopicPartitionResponse partitionResponse = new TopicPartitionResponse(header, body);
             partitionResponse.GetResponse(writer);
         }
@@ -178,7 +150,6 @@ namespace codecrafterskafka.src
         {
             var lengthSpan = writer.GetSpan(4);
             writer.Advance(4); // reserve space for length  
-
 
             writer.WriteToBuffer(correlationId); //correlationId            
             writer.WriteToBuffer((short)0); //ErrorCode

@@ -26,6 +26,10 @@ namespace codecrafterskafka.src.Design
             {
                 this.body = new TopicPartitionRequestBodyV0();
             }
+            else if (header.ApiKey == 1 && header.ApiVersion >= 0 && header.ApiVersion <= 16)
+            {
+                this.body = new FetchRequestBodyV16();
+            }
 
             this.body?.PopulateBody(this.buffer, this.offset);
         }
