@@ -16,7 +16,8 @@ namespace src.Design.Fetch
 
         public void WriteResponse(ArrayBufferWriter<byte> writer)
         {
-            writer.WriteToBuffer(TopicID.ToByteArray());
+            Console.WriteLine("TopicID: " + TopicID);
+            writer.WriteGuidBigEndian(TopicID);
             writer.WriteVarIntToBuffer(Partitions.Count);
             foreach (var partition in Partitions)
             {

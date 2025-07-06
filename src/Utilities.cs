@@ -82,9 +82,37 @@ namespace codecrafterskafka.src
 
         public static void WriteToBuffer(this ArrayBufferWriter<byte> writer, byte[] value)
         {
-            Span<byte> span = writer.GetSpan(value.Length);
+            Span<byte> span = writer.GetSpan(value.Length);            
             value.CopyTo(span);
             writer.Advance(value.Length);
+        }
+
+        public static void WriteGuidBigEndian(this ArrayBufferWriter<byte> writer, Guid guid)
+        {
+            // Allocate a 16-byte span to write into
+            Span<byte> span = writer.GetSpan(16);
+
+            // Grab the CLR little-endian bytes
+            byte[] le = guid.ToByteArray();
+
+            // Reverse Data1 (first 4 bytes)
+            span[0] = le[3];
+            span[1] = le[2];
+            span[2] = le[1];
+            span[3] = le[0];
+
+            // Reverse Data2 (next 2 bytes)
+            span[4] = le[5];
+            span[5] = le[4];
+
+            // Reverse Data3 (next 2 bytes)
+            span[6] = le[7];
+            span[7] = le[6];
+
+            // Copy Data4 (final 8 bytes) as-is
+            new ReadOnlySpan<byte>(le, 8, 8).CopyTo(span.Slice(8, 8));
+
+            writer.Advance(16);
         }
 
         public static void WriteVarIntToBuffer(this ArrayBufferWriter<byte> writer, int value)

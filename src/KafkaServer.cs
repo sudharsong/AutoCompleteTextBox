@@ -135,7 +135,8 @@ namespace codecrafterskafka.src
                             new FetchResponseTopicPartition
                             {
                                 PartitionIndex = 0,
-                                ErrorCode = 100
+                                ErrorCode = (short)(!this.metaData.IsTopicExists(topicID) ? 100 :
+                                !this.metaData.IsTopicPartitionExist(topicID) ? 0: 0)
                                 //HighWatermark = 1,
                                 //LastStableOffset = 1,
                                 //LogStartOffset = 0,
@@ -147,6 +148,7 @@ namespace codecrafterskafka.src
                         TopicID = topicID,
                         Partitions = partitions
                     } };
+
             Console.WriteLine($"Number of responses {responses.Count} with {partitions.Count} partitions");
           
             FetchResponseBodyV16 bodyV16 = new FetchResponseBodyV16()

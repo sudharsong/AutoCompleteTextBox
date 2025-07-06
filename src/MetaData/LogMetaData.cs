@@ -14,7 +14,7 @@ namespace src.MetaDatakafka.src
     internal class LogMetaData
     {
         private List<RecordBatch> recordBatches = new List<RecordBatch>();
-        private List<PartitionRecord>? partitionRecords;
+        public List<PartitionRecord>? partitionRecords;
         private List<TopicRecord>? topicRecords;
 
         public async Task LoadLogMetaDataAsync(string logMetadataFilePath, CancellationToken token)
@@ -186,5 +186,14 @@ namespace src.MetaDatakafka.src
             return topicPartitions;
         }
 
+        public bool IsTopicExists(Guid topicId)
+        {
+            return this.topicRecords.Any(t => t.TopicUUID.Equals(topicId));
+        }
+
+        public bool IsTopicPartitionExist(Guid topicId)
+        {
+            return this.partitionRecords.Any(p => p.TopicUUID.Equals(topicId));
+        }
     }
 }
