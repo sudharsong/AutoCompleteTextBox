@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,5 +16,10 @@ namespace codecrafterskafka.src.MetaData
         public Guid TopicUUID { get; set; }
 
         public uint TaggedFieldCount { get; set; }
+
+        public void WriteResponse(ArrayBufferWriter<byte> writer)
+        {
+
+        }
     }
 }

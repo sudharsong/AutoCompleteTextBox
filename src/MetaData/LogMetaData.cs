@@ -14,8 +14,16 @@ namespace src.MetaDatakafka.src
     internal class LogMetaData
     {
         private List<RecordBatch> recordBatches = new List<RecordBatch>();
-        public List<PartitionRecord>? partitionRecords;
+        private List<PartitionRecord>? partitionRecords;
         private List<TopicRecord>? topicRecords;
+
+        private LogMetaData()
+        {
+            // Private constructor to prevent instantiation
+        }
+
+        private static readonly Lazy<LogMetaData> instance = new Lazy<LogMetaData>(() => new LogMetaData());
+        public static LogMetaData Instance => instance.Value;
 
         public async Task LoadLogMetaDataAsync(string logMetadataFilePath, CancellationToken token)
         {
@@ -35,11 +43,17 @@ namespace src.MetaDatakafka.src
 
             int currentLength = startLength;
             RecordBatch batch = new RecordBatch();
+            batch.BatchStartOffset = currentLength;
             batch.BaseOffset = buffer.ReadInt64FromBuffer(ref currentLength);
-            batch.BatchLength = buffer.ReadInt32FromBuffer(ref currentLength);
+            batch.BatchLength = buffer.ReadInt32FromBuffer(ref currentLength);            
             batch.PartitionLeaderEpoch = buffer.ReadInt32FromBuffer(ref currentLength);
             batch.MagicByte = buffer.ReadByteFromBuffer(ref currentLength);
-            batch.Crc = buffer.ReadInt32FromBuffer(ref currentLength);
+            Console.WriteLine($"Batch Length: {batch.BatchLength} Current Length: {currentLength} Buffer Length: {buffer.Length}");
+            //batch.Crc = buffer.CalculateCrcForBatch(currentLength, currentLength +  batch.BatchLength - 5);
+            batch.CRCData = buffer.GetCRCData(currentLength, currentLength + batch.BatchLength - 5);
+            batch.Crc = batch.CRCData.CalculateCRCforRecordBatch();
+            currentLength += 4; // Move past the CRC field
+            //Console.WriteLine($"Crc: {Encoding.UTF8.GetString(batch.Crc)} Current Length: {currentLength} Buffer Length: {buffer.Length}");
             batch.Attributes = buffer.ReadInt16FromBuffer(ref currentLength);
             batch.LastOffsetDelta = buffer.ReadInt32FromBuffer(ref currentLength);
             batch.BaseTimestamp = buffer.ReadInt64FromBuffer(ref currentLength);
@@ -186,14 +200,26 @@ namespace src.MetaDatakafka.src
             return topicPartitions;
         }
 
-        public bool IsTopicExists(Guid topicId)
+        public TopicRecord GetTopicRecord(Guid topicId)
         {
-            return this.topicRecords.Any(t => t.TopicUUID.Equals(topicId));
+            return this.topicRecords.FirstOrDefault(t => t.TopicUUID.Equals(topicId));
         }
 
         public bool IsTopicPartitionExist(Guid topicId)
         {
             return this.partitionRecords.Any(p => p.TopicUUID.Equals(topicId));
+        }
+
+        public List<RecordBatch> GetPartitionRecordBatches(Guid topicID)
+        {
+            var result = this.recordBatches
+                .Where(a => a.Records.Any(r => r.Value is PartitionRecord pr && pr.TopicUUID == topicID)).ToList();
+            //foreach (var batch in result)
+            //{
+            //   Console.WriteLine(batch.ToString());
+            //}
+
+            return result;
         }
     }
 }

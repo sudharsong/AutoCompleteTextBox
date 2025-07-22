@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,5 +15,13 @@ namespace codecrafterskafka.src.MetaData
 
         public byte Version { get; set; }
         public short ValueLength { get; internal set; }
+
+        public virtual void WriteResponse(ArrayBufferWriter<byte> writer)
+        {
+            writer.WriteToBuffer(FrameVersion);
+            writer.WriteToBuffer((byte)Type);
+            writer.WriteToBuffer(Version);
+            writer.WriteToBuffer(ValueLength);
+        }
     }
 }

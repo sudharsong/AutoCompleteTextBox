@@ -31,7 +31,7 @@ namespace src.Design.Fetch
             writer.WriteToBuffer(ThrottleTime);
             writer.WriteToBuffer(ErrorCode);
             writer.WriteToBuffer(SessionId);
-            writer.WriteVarIntToBuffer(Responses.Count);//need to comment
+            writer.WriteUVarInt((uint)(Responses.Count+1));//need to comment
             foreach (var response in Responses)
             {
                 response.WriteResponse(writer);

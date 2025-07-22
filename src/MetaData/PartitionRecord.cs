@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -36,5 +37,44 @@ namespace codecrafterskafka.src.MetaData
 
         public uint TaggedFieldCount { get; set; }
 
+        public override void WriteResponse(ArrayBufferWriter<byte> writer)
+        {
+            base.WriteResponse(writer);
+            writer.WriteToBuffer(ParititionId);
+            writer.WriteGuidToBuffer(TopicUUID);
+            writer.WriteVarIntToBuffer((int)ReplicaArrayLength);
+            if (ReplicaArray != null)
+            {
+                foreach (var replica in ReplicaArray)
+                {
+                    writer.WriteToBuffer(replica);
+                }
+            }
+
+            writer.WriteVarIntToBuffer((int)SyncReplicaArrayLength);
+            if (SyncReplicaArray != null)
+            {
+                foreach (var syncReplica in SyncReplicaArray)
+                {
+                    writer.WriteToBuffer(syncReplica);
+                }
+            }
+
+            writer.WriteVarIntToBuffer((int)RemovingReplicaArrayLength);
+            writer.WriteVarIntToBuffer((int)AddingReplicaArrayLength);
+            writer.WriteToBuffer(Leader);
+            writer.WriteToBuffer(LeaderEpoch);
+            writer.WriteToBuffer(PartitionEpoch);
+            writer.WriteVarIntToBuffer((int)DirectoriesArrayLength);
+            if (DirectoriesArray != null)
+            {
+                foreach (var directory in DirectoriesArray)
+                {
+                    writer.WriteGuidToBuffer(directory);
+                }
+            }
+
+            writer.WriteVarIntToBuffer((int)TaggedFieldCount);
+        }
     }
 }

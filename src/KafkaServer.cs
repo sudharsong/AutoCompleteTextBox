@@ -47,7 +47,7 @@ namespace codecrafterskafka.src
             Console.WriteLine($"Found log file {logFile}.");
             if (File.Exists(logFile))
             {
-                this.metaData = new LogMetaData();
+                this.metaData = LogMetaData.Instance;
                 await metaData.LoadLogMetaDataAsync(logFile, this.token);
             }
             else
@@ -129,19 +129,24 @@ namespace codecrafterskafka.src
 
         private void PrepareFetchResponse(ArrayBufferWriter<byte> writer, int correlationId, Guid topicID)
         {
-            Console.WriteLine($"Preparing fetch response for topic id {topicID}");  
+            Console.WriteLine("Correlationid : " + correlationId);
+            Console.WriteLine($"Preparing fetch response for topic id {topicID}"); 
+            Console.WriteLine($"Topic Exist {this.metaData.GetTopicRecord(topicID)}");
+            Console.WriteLine($"Partition Exist {this.metaData.IsTopicPartitionExist(topicID)}");   
             FetchResponseHeaderV16 headerV16 = new FetchResponseHeaderV16(correlationId);
             var partitions = new List<FetchResponseTopicPartition> {
                             new FetchResponseTopicPartition
                             {
                                 PartitionIndex = 0,
-                                ErrorCode = (short)(!this.metaData.IsTopicExists(topicID) ? 100 :
-                                !this.metaData.IsTopicPartitionExist(topicID) ? 0: 0)
+                                ErrorCode = (short)(this.metaData.GetTopicRecord(topicID) == null ? 100 :
+                                !this.metaData.IsTopicPartitionExist(topicID) ? 0: 0),
                                 //HighWatermark = 1,
                                 //LastStableOffset = 1,
                                 //LogStartOffset = 0,
                                 //AbortedTransactions = Array.Empty<AbortedTransaction>(),
-                                //Records = new byte[1]
+                                Records = this.metaData.IsTopicPartitionExist(topicID) ? 
+                                this.metaData.GetPartitionRecordBatches(topicID) :  new List<RecordBatch>(),
+                                //Records = new List<RecordBatch>{new RecordBatch()}
                             } };
             var responses = new List<FetchResponseTopic> {
                     new FetchResponseTopic {
@@ -155,7 +160,7 @@ namespace codecrafterskafka.src
             {
                 ThrottleTime = 0,
                 ErrorCode = 0,
-                SessionId = 255,
+                SessionId = 0,
                 Responses = topicID != Guid.Empty ?  responses : new List<FetchResponseTopic>()
             };
 

@@ -1,11 +1,14 @@
 ﻿using System;
-using System.Buffers.Binary;
 using System.Buffers;
+using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.IO.Hashing;
 using System.Linq;
+using System.Net.Sockets;
+using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using System.Threading.Tasks;
-using System.Net.Sockets;
+using System.Xml.Linq;
 
 namespace codecrafterskafka.src
 {
@@ -66,9 +69,17 @@ namespace codecrafterskafka.src
             writer.Advance(4);
         }
 
-        public static void WriteToBuffer(this ArrayBufferWriter<byte> writer, long value)
+        public static void WriteToBuffer(this ArrayBufferWriter<byte> writer, uint value)
         {
             Span<byte> span = writer.GetSpan(4);
+            Console.WriteLine($"CRC value passed {value}");
+            BinaryPrimitives.WriteUInt32BigEndian(span, value);
+            writer.Advance(4);
+        }
+
+        public static void WriteToBuffer(this ArrayBufferWriter<byte> writer, long value)
+        {
+            Span<byte> span = writer.GetSpan(8);
             BinaryPrimitives.WriteInt64BigEndian(span, value);
             writer.Advance(8);
         }
@@ -87,7 +98,7 @@ namespace codecrafterskafka.src
             writer.Advance(value.Length);
         }
 
-        public static void WriteGuidBigEndian(this ArrayBufferWriter<byte> writer, Guid guid)
+        public static void WriteGuidToBuffer(this ArrayBufferWriter<byte> writer, Guid guid)
         {
             // Allocate a 16-byte span to write into
             Span<byte> span = writer.GetSpan(16);
@@ -131,6 +142,18 @@ namespace codecrafterskafka.src
             // last byte (high bit = 0)
             writer.GetSpan(1)[0] = (byte)zig;
             writer.Advance(1);
+        }
+
+        public static void WriteUVarInt(this ArrayBufferWriter<byte> w, uint value)
+        {
+            while ((value & ~0x7Fu) != 0)
+            {
+                w.GetSpan(1)[0] = (byte)((value & 0x7F) | 0x80);
+                w.Advance(1);
+                value >>= 7;
+            }
+            w.GetSpan(1)[0] = (byte)value;
+            w.Advance(1);
         }
 
         public static int ReadInt32FromBuffer(this byte[] buffer, ref int offset)
@@ -219,6 +242,75 @@ namespace codecrafterskafka.src
             }
             return value;
         }
+
+        public static int CalculateCrcForBatch(this byte[] buffer, int offset, int peOffset)
+        {            
+            // 1) Extract the exact range we want to CRC:
+            int length = peOffset - (offset + 4);
+            if (length < 0 || (offset + 4) + length > buffer.Length)
+                throw new ArgumentOutOfRangeException(nameof(peOffset));
+
+            ReadOnlySpan<byte> crcData = buffer.AsSpan((offset + 4), length);
+
+            // 2) Compute CRC32-C (Castagnoli)
+            //    You can either use the instance API:
+            var crc = new System.IO.Hashing.Crc32();
+            crc.Append(crcData);
+            //offset = offset + 4;
+            uint checksum = crc.GetCurrentHashAsUInt32();
+            return (int)checksum;
+            //byte[] result = BitConverter.GetBytes((int)checksum);
+
+            //if(BitConverter.IsLittleEndian)
+            //{
+            //    Array.Reverse(result); // Ensure big-endian order
+            //}
+
+            //return BitConverter.ToInt32(result);
+        }
+
+
+        public static ArraySegment<byte> GetCRCData(this byte[] buffer, int offset, int peOffset)
+        {
+            int length = peOffset - (offset + 4);
+            if (length < 0 || (offset + 4) + length > buffer.Length)
+                throw new ArgumentOutOfRangeException(nameof(peOffset));
+
+            return new ArraySegment<byte>(buffer, offset + 4, length);
+        }
+
+        public static int CalculateCRCforRecordBatch(this ArraySegment<byte> crcData)
+        {
+            var crc = new System.IO.Hashing.Crc32();
+            crc.Append(crcData);
+            //offset = offset + 4;
+            uint checksum = crc.GetCurrentHashAsUInt32();
+            return (int)checksum;
+        }
+
+        //public static uint PatchRecordBatchCrc(this byte[] buffer, int batchStartOffset, int batchLength)
+        //{
+        //    // 1) Read batchLength (INT32 BE) at offset + 8
+        //    int lengthOffset = batchStartOffset + 8;
+        //    if (lengthOffset + 4 > buffer.Length)
+        //        throw new ArgumentOutOfRangeException(nameof(batchStartOffset));
+
+        //    //int batchLength = BinaryPrimitives.ReadInt32BigEndian(
+        //    //buffer.AsSpan(lengthOffset, 4));
+
+        //    // 2) Compute offsets of CRC field and CRC data
+        //    //    Skip: BaseOffset(8) + BatchLength(4) + LeaderEpoch(4) + Magic(1)
+        //    int crcFieldOffset = batchStartOffset + 8 + 4 + 4 + 1;
+        //    int crcDataStart = crcFieldOffset + 4;              // skip the CRC itself
+        //    int crcDataLen = batchLength - (1 + 4 + 4);           // drop magic + CRC
+
+        //    Console.WriteLine($"Buffer Length : {buffer.Length}");
+        //    if (crcDataLen <= 0 || crcDataStart + crcDataLen > buffer.Length)
+        //        throw new ArgumentOutOfRangeException(
+        //            $"Invalid CRC slice: start={crcDataStart}, len={crcDataLen}");
+        //    Console.WriteLine($"Calling Calculate");
+        //    return CalculateCrcForBatch(buffer, crcDataStart-4, crcDataStart + crcDataLen);
+        //}
 
         //public static byte[] GetBytes(this int num)
         //{
